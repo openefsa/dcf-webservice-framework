@@ -67,6 +67,8 @@ public class DetailedSOAPException extends SOAPException {
 			error = SOAPError.UNAUTHORIZED;
 		else if (message.contains("403"))
 			error = SOAPError.FORBIDDEN;
+		else if (message.contains("soap:Server"))
+			error = SOAPError.SERVER_ERROR;
 		else
 			error = SOAPError.NO_CONNECTION;
 		

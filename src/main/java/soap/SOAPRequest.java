@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Iterator;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -29,10 +30,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.soap.AttachmentPart;
 import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPConnection;
 import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
@@ -204,7 +207,7 @@ public abstract class SOAPRequest {
 
 			// open the connection
 			SOAPConnection soapConnection = connectionFactory.createConnection();
-			
+
 			// create the request message
 			SOAPMessage request = createRequest(user, namespace, soapConnection);
 
@@ -229,6 +232,12 @@ public abstract class SOAPRequest {
 			// if https with test => skip certificates
 			if (httpsConnection != null) {
 				httpsConnection.disconnect();
+			}
+
+			if (response.getSOAPBody().hasFault()) {
+				SOAPFault fault = response.getSOAPBody().getFault();
+
+				throw new SOAPException(fault.getFaultCode() + ": " + fault.getFaultString());
 			}
 
 			// parse the response and get the result
