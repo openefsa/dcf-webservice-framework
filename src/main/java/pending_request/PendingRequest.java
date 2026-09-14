@@ -16,7 +16,9 @@ import config.Environment;
 import dcf_log.DcfLog;
 import dcf_log.DcfResponse;
 import dcf_log.IDcfLogParser;
+import soap.DetailedSOAPException;
 import soap.ExportCatalogueFile;
+import soap.SOAPError;
 import soap_interface.IExportCatalogueFile;
 import user.IDcfUser;
 
@@ -169,7 +171,17 @@ public class PendingRequest implements IPendingRequest {
 		if (this.exportCatFile == null)
 			this.exportCatFile = new ExportCatalogueFile();
 		
-		File logVar = this.exportCatFile.exportLog(env, userVar, logCodeVar);
+		File logVar = null;
+		try {
+		 logVar = this.exportCatFile.exportLog(env, userVar, logCodeVar);
+		}catch(DetailedSOAPException e) {
+			if(e.getError().equals(SOAPError.SERVER_ERROR)) {
+				LOGGER.info("SERVER ERROR",e.getMessage());
+				logVar = null;
+			}else {
+				throw e;
+			}
+		}
 		
 		if (logVar != null)
 			LOGGER.info("Log successfully downloaded, file=" + logVar);
